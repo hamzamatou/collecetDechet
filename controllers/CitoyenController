@@ -1,0 +1,66 @@
+// controllers/CitoyenController.js
+const express = require('express');
+const router = express.Router();
+const CitoyenService = require('../services/CitoyenService'); // service à créer plus tard
+
+class CitoyenController {
+
+    // ===== API JSON =====
+    static async deposerDechet(req, res) {
+        try {
+            const { citoyenId, type, quantite } = req.body;
+            const dechet = await CitoyenService.deposerDechet(citoyenId, type, quantite);
+            res.status(201).json(dechet);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async getPointsEtDechets(req, res) {
+        try {
+            const { citoyenId } = req.params;
+            const data = await CitoyenService.getPointsEtDechets(citoyenId);
+            res.status(200).json(data);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    // ===== Contrôleur Web (EJS) =====
+    // Page dashboard
+    static async pageDashboard(req, res) {
+        try {
+            const citoyenId = req.params.citoyenId;
+            const data = await CitoyenService.getPointsEtDechets(citoyenId);
+            res.render('Citoyen/dashboard', { citoyen: data });
+        } catch (err) {
+            res.status(500).send('Erreur serveur : ' + err.message);
+        }
+    }
+
+    // Page déchets séparée
+    static async pageDechets(req, res) {
+        try {
+            const citoyenId = req.params.citoyenId;
+            const data = await CitoyenService.getPointsEtDechets(citoyenId);
+            res.render('Citoyen/dechets', { citoyen: data });
+        } catch (err) {
+            res.status(500).send('Erreur serveur : ' + err.message);
+        }
+    }
+
+    // Méthode pour enregistrer les routes dans app.js
+    static routes() {
+        // API
+        router.post('/api/citoyen/depot', CitoyenController.deposerDechet);
+        router.get('/api/citoyen/:citoyenId/dechets', CitoyenController.getPointsEtDechets);
+
+        // Pages web
+        router.get('/citoyen/:citoyenId/dashboard', CitoyenController.pageDashboard);
+        router.get('/citoyen/:citoyenId/dechets', CitoyenController.pageDechets);
+
+        return router;
+    }
+}
+
+module.exports = CitoyenController;
