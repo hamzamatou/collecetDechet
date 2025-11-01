@@ -1,0 +1,86 @@
+// controllers/CitoyenController.js
+const express = require('express');
+const router = express.Router();
+const CitoyenService = require('../services/CitoyenService'); // service à créer ou importer
+
+class CitoyenController {
+
+    // =========================================================
+    // ✅ PARTIE API (Retourne des données JSON)
+    // =========================================================
+
+    static async deposerDechet(req, res) {
+        try {
+            const { citoyenId, type, quantite, dateRencontre } = req.body;
+            const dechet = await CitoyenService.deposerDechet(citoyenId, type, quantite, dateRencontre);
+            res.status(201).json(dechet);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async getPointsEtDechets(req, res) {
+        try {
+            const { citoyenId } = req.params;
+            const data = await CitoyenService.getPointsEtDechets(citoyenId);
+            res.status(200).json(data);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+
+    static async pageDashboard(req, res) {
+        try {
+            const citoyenId = req.params.citoyenId;
+            const data = await CitoyenService.getPointsEtDechets(citoyenId);
+            res.render('Citoyen/dashboard', { citoyen: data, message: null });
+        } catch (err) {
+            res.status(500).send('Erreur serveur : ' + err.message);
+        }
+    }
+
+    static async pageDechets(req, res) {
+        try {
+            const citoyenId = req.params.citoyenId;
+            const data = await CitoyenService.getPointsEtDechets(citoyenId);
+            res.render('Citoyen/dechets', { citoyen: data });
+        } catch (err) {
+            res.status(500).send('Erreur serveur : ' + err.message);
+        }
+    }
+
+    // 💾 Soumission du formulaire de dépôt depuis la page EJS
+    static async soumettreDepot(req, res) {
+        try {
+            const { citoyenId, type, quantite, dateRencontre } = req.body;
+            await CitoyenService.deposerDechet(citoyenId, type, quantite, dateRencontre);
+            
+            const data = await CitoyenService.getPointsEtDechets(citoyenId);
+            res.render('Citoyen/dashboard', { 
+                citoyen: data,
+                message: "✅ Dépôt effectué avec succès !"
+            });
+        } catch (err) {
+            res.status(500).send("Erreur lors du dépôt : " + err.message);
+        }
+    }
+
+    // =========================================================
+    // 🛣️ ROUTES
+    // =========================================================
+    static routes() {
+        // === API ===
+        router.post('/api/citoyen/depot', CitoyenController.deposerDechet);
+        router.get('/api/citoyen/:citoyenId/dechets', CitoyenController.getPointsEtDechets);
+
+        // === Pages Web ===
+        router.get('/citoyen/:citoyenId/dashboard', CitoyenController.pageDashboard);
+        router.get('/citoyen/:citoyenId/dechets', CitoyenController.pageDechets);
+        router.post('/citoyen/:citoyenId/depot', CitoyenController.soumettreDepot); // ✅ corrigée ici
+
+        return router;
+    }
+}
+
+module.exports = CitoyenController;
