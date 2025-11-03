@@ -1,116 +1,59 @@
-// controllers/CitoyenController.js
-const express = require('express');
-const router = express.Router();
-const CitoyenService = require('../services/CitoyenService'); // service à créer ou importer
+const CitoyenService = require('../services/CitoyenService');
 
 class CitoyenController {
-
-    // ==========================================
-    // 🌐 Pages Web (EJS)
-    // ==========================================
-    static async pageDashboard(req, res) {
-        try {
-            const citoyenId = req.params.citoyenId;
-            const data = await CitoyenService.getPointsEtDechets(citoyenId);
-            res.render('Citoyen/dashboard', { citoyen: data, message: null });
-        } catch (err) {
-            res.status(500).send('Erreur serveur : ' + err.message);
-        }
+  // 🌐 Pages Web (EJS)
+  static async pageDashboard(req, res) {
+    try {
+      const { citoyenId } = req.params;
+      const data = await CitoyenService.getPointsEtDechets(citoyenId);
+      res.render('Citoyen/dashboard', { citoyen: data, message: null });
+    } catch (err) {
+      res.status(500).send('Erreur serveur : ' + err.message);
     }
+  }
 
-    static async pageDechets(req, res) {
-        try {
-            const citoyenId = req.params.citoyenId;
-            const data = await CitoyenService.getPointsEtDechets(citoyenId);
-            res.render('Citoyen/dechets', { citoyen: data });
-        } catch (err) {
-            res.status(500).send('Erreur serveur : ' + err.message);
-        }
+  static async pageDechets(req, res) {
+    try {
+      const { citoyenId } = req.params;
+      const data = await CitoyenService.getPointsEtDechets(citoyenId);
+      res.render('Citoyen/dechets', { citoyen: data });
+    } catch (err) {
+      res.status(500).send('Erreur serveur : ' + err.message);
     }
+  }
 
-    static async soumettreDepot(req, res) {
-        try {
-            const { type, quantite, dateRencontre } = req.body;
-            const { citoyenId } = req.params;
-            await CitoyenService.deposerDechet(citoyenId, type, quantite, dateRencontre);
-
-            const data = await CitoyenService.getPointsEtDechets(citoyenId);
-            res.render('Citoyen/dashboard', {
-                citoyen: data,
-                message: "✅ Dépôt effectué avec succès !"
-            });
-        } catch (err) {
-            res.status(500).send("Erreur lors du dépôt : " + err.message);
-        }
+  static async depotDechetWeb(req, res) {
+    try {
+      const { citoyenId } = req.params;
+      const { type, quantite, dateRencontre } = req.body;
+      await CitoyenService.deposerDechet(citoyenId, type, quantite, dateRencontre);
+      const data = await CitoyenService.getPointsEtDechets(citoyenId);
+      res.render('Citoyen/dashboard', { citoyen: data, message: '✅ Dépôt effectué avec succès !' });
+    } catch (err) {
+      res.status(500).send('Erreur serveur : ' + err.message);
     }
+  }
 
-    // ==========================================
-    // 🔹 Routes
-    // ==========================================
-    static routes() {
-
-        // ----------------------------
-        // API
-        // ----------------------------
-
-        /**
-         * @swagger
-         * /api/citoyen/{citoyenId}/depot:
-         *     responses:
-         *       201:
-         *         description: Déchet déposé avec succès
-         *       500:
-         *         description: Erreur serveur
-         */
-        router.post('/api/citoyen/:citoyenId/depot', async (req, res) => {
-            try {
-                const { type, quantite, dateRencontre } = req.body;
-                const { citoyenId } = req.params;
-                const dechet = await CitoyenService.deposerDechet(citoyenId, type, quantite, dateRencontre);
-                res.status(201).json(dechet);
-            } catch (err) {
-                res.status(500).json({ message: err.message });
-            }
-        });
-
-        /**
-         * @swagger
-         * /api/citoyen/{citoyenId}/dechets:
-         *   get:
-         *     summary: Obtenir les points et déchets d’un citoyen
-         *     tags: [Citoyen]
-         *     parameters:
-         *       - in: path
-         *         name: citoyenId
-         *         schema:
-         *           type: string
-         *         required: true
-         *         description: ID du citoyen
-         *     responses:
-         *       200:
-         *         description: Données récupérées avec succès
-         *       500:
-         *         description: Erreur serveur
-         */
-        router.get('/api/citoyen/:citoyenId/dechets', async (req, res) => {
-            try {
-                const { citoyenId } = req.params;
-                const data = await CitoyenService.getPointsEtDechets(citoyenId);
-                res.status(200).json(data);
-            } catch (err) {
-                res.status(500).json({ message: err.message });
-            }
-        });
-
-        // ----------------------------
-        // Pages Web
-        // ----------------------------
-        router.get('/citoyen/:citoyenId/dashboard', CitoyenController.pageDashboard);
-        router.get('/citoyen/:citoyenId/dechets', CitoyenController.pageDechets);
-        router.post('/citoyen/:citoyenId/depot', CitoyenController.soumettreDepot);
-
-        return router;
+  static async depotDechetAPI(req, res) {
+    try {
+      const { citoyenId } = req.params;
+      const { type, quantite, dateRencontre } = req.body;
+      const dechet = await CitoyenService.deposerDechet(citoyenId, type, quantite, dateRencontre);
+      res.status(201).json(dechet);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
+  }
+
+  static async getDechetsAPI(req, res) {
+    try {
+      const { citoyenId } = req.params;
+      const data = await CitoyenService.getPointsEtDechets(citoyenId);
+      res.status(200).json(data);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  }
 }
 
 module.exports = CitoyenController;

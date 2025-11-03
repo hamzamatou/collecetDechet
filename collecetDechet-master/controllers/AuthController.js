@@ -73,50 +73,6 @@ class AuthController {
     res.clearCookie('token');
     res.redirect('/login');
   }
-
-  static routes() {
-    router.get('/login', AuthController.pageLogin);
-    router.post('/login', AuthController.login);
-    /**
-     * @swagger
-     * /api/login:
-     *   post:
-     *     summary: Connexion via API
-     *     tags: [Auth]
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               email:
-     *                 type: string
-     *               password:
-     *                 type: string
-     *     responses:
-     *       200:
-     *         description: Connexion réussie avec token JWT
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 token:
-     *                   type: string
-     *                 role:
-     *                   type: string
-     *       401:
-     *         description: Email ou mot de passe invalide
-     *       500:
-     *         description: Erreur serveur
-     */
-    router.post('/api/login', AuthController.apiLogin);
-
-    router.get('/logout', AuthController.logout);
-
-    return router;
-  }
 }
 
 module.exports = AuthController;

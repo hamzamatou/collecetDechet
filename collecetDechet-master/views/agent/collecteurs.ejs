@@ -11,7 +11,6 @@
       margin: 0;
       color: #2f3640;
     }
-
     header {
       background-color: #273c75;
       color: white;
@@ -21,39 +20,33 @@
       padding: 1rem 2rem;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
     header h1 {
       font-size: 1.4rem;
       margin: 0;
     }
-
     nav a {
       color: white;
       text-decoration: none;
       margin-left: 15px;
       font-weight: 500;
     }
-
     nav a.active {
       border-bottom: 2px solid #00a8ff;
     }
-
     main {
-      max-width: 1000px;
+      max-width: 1200px;
       margin: 2rem auto;
       padding: 2rem;
       background: white;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-
     h2 {
       color: #273c75;
       border-left: 4px solid #00a8ff;
       padding-left: 10px;
       margin-bottom: 1rem;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -61,22 +54,18 @@
       overflow: hidden;
       margin-bottom: 2rem;
     }
-
     thead {
       background-color: #273c75;
       color: white;
     }
-
     th, td {
       padding: 12px 15px;
       text-align: center;
       border-bottom: 1px solid #ddd;
     }
-
     tr:hover {
       background-color: #f1f2f6;
     }
-
     .action-btn {
       border: none;
       background: none;
@@ -86,23 +75,18 @@
       border-radius: 6px;
       transition: 0.3s;
     }
-
     .action-btn.delete {
       color: #e84118;
     }
-
     .action-btn.delete:hover {
       background-color: #f8d7da;
     }
-
     .action-btn.edit {
       color: #44bd32;
     }
-
     .action-btn.edit:hover {
       background-color: #d4efdf;
     }
-
     .update-form {
       display: none;
       background-color: #f5f6fa;
@@ -111,7 +95,6 @@
       border-radius: 8px;
       border: 1px solid #dcdde1;
     }
-
     .update-form input {
       padding: 8px;
       border: 1px solid #ccc;
@@ -119,7 +102,6 @@
       margin-right: 8px;
       font-size: 14px;
     }
-
     .update-form button {
       background-color: #273c75;
       color: white;
@@ -129,11 +111,9 @@
       cursor: pointer;
       font-weight: 600;
     }
-
     .update-form button:hover {
       background-color: #40739e;
     }
-
     form.add-form {
       display: flex;
       flex-direction: column;
@@ -143,14 +123,12 @@
       border-radius: 8px;
       border: 1px solid #dcdde1;
     }
-
     form.add-form input {
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 14px;
     }
-
     form.add-form button {
       align-self: flex-start;
       background-color: #44bd32;
@@ -162,7 +140,6 @@
       font-weight: 600;
       transition: background 0.3s;
     }
-
     form.add-form button:hover {
       background-color: #4cd137;
     }
@@ -185,8 +162,11 @@
           <tr>
             <th>ID</th>
             <th>Nom</th>
+            <th>Prénom</th>
             <th>Email</th>
+            <th>Téléphone</th>
             <th>Zone</th>
+            <th>N° Véhicule</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -196,13 +176,15 @@
               <tr>
                 <td><%= c.id %></td>
                 <td><%= c.nom %></td>
+                <td><%= c.prenom %></td>
                 <td><%= c.email %></td>
+                <td><%= c.tel %></td>
                 <td><%= c.zone %></td>
+                <td><%= c.numVehicule %></td>
                 <td>
                   <button class="action-btn edit" onclick="toggleUpdateForm('<%= c.id %>')">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
-
                   <form action="/agent/collecteurs/<%= c.id %>/delete" method="POST" style="display:inline;">
                     <button class="action-btn delete" type="submit" title="Supprimer">
                       <i class="fa-solid fa-trash"></i>
@@ -211,20 +193,22 @@
                 </td>
               </tr>
 
-              <!-- Formulaire de mise à jour -->
               <tr id="update-form-<%= c.id %>" class="update-form">
-                <td colspan="5">
+                <td colspan="8">
                   <form action="/agent/collecteurs/<%= c.id %>/update" method="POST" class="update-form">
                     <input type="text" name="nom" value="<%= c.nom %>" required>
+                    <input type="text" name="prenom" value="<%= c.prenom %>" required>
                     <input type="email" name="email" value="<%= c.email %>" required>
+                    <input type="text" name="tel" value="<%= c.tel %>" required>
                     <input type="text" name="zone" value="<%= c.zone %>" required>
+                    <input type="text" name="numVehicule" value="<%= c.numVehicule %>" required>
                     <button type="submit"><i class="fa-solid fa-save"></i> Enregistrer</button>
                   </form>
                 </td>
               </tr>
             <% }) %>
           <% } else { %>
-            <tr><td colspan="5">Aucun collecteur trouvé.</td></tr>
+            <tr><td colspan="8">Aucun collecteur trouvé.</td></tr>
           <% } %>
         </tbody>
       </table>
@@ -236,11 +220,20 @@
         <label>Nom :</label>
         <input type="text" name="nom" placeholder="Nom du collecteur" required>
 
+        <label>Prénom :</label>
+        <input type="text" name="prenom" placeholder="Prénom du collecteur" required>
+
         <label>Email :</label>
         <input type="email" name="email" placeholder="exemple@mail.com" required>
 
+        <label>Téléphone :</label>
+        <input type="text" name="tel" placeholder="Numéro de téléphone" required>
+
         <label>Zone :</label>
         <input type="text" name="zone" placeholder="Ex : Borj Louzir" required>
+
+        <label>Numéro de véhicule :</label>
+        <input type="text" name="numVehicule" placeholder="Ex : TN-1234-AB" required>
 
         <button type="submit"><i class="fa-solid fa-plus"></i> Ajouter</button>
       </form>

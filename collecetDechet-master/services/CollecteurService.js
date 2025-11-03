@@ -1,7 +1,23 @@
 class CollecteurService {
   static collecteurs = [
-    { id: 1, nom: "Mohamed Ali", email: "ali@gmail.com", zone: "Borj Louzir" },
-    { id: 2, nom: "Sami Trabelsi", email: "sami@gmail.com", zone: "La Marsa" },
+    {
+      id: 1,
+      nom: "Mohamed",
+      prenom: "Ali",
+      email: "ali@gmail.com",
+      tel: "12345678",
+      zone: "Borj Louzir",
+      numVehicule: "TN-1234-AB"
+    },
+    {
+      id: 2,
+      nom: "Sami",
+      prenom: "Trabelsi",
+      email: "sami@gmail.com",
+      tel: "87654321",
+      zone: "La Marsa",
+      numVehicule: "TN-5678-CD"
+    },
   ];
 
   static async ajouterCollecteur(data) {
@@ -38,27 +54,31 @@ class CollecteurService {
     return [
       {
         _id: "1",
-        citoyenId: { nom: "Ali Ben Salah", email: "ali@gmail.com", adresse: "rue mostfa mohsen borjlouzir" },
+        citoyenId: { nom: "Ali Ben Salah", email: "ali@gmail.com", adresse: "rue Mostfa Mohsen Borj Louzir" },
         type: "Plastique",
         quantite: 3.5,
         statut: "en attente",
+        dateDemande: "2025-11-01",
         dateRencontre: "2025-11-05",
+        dateCollecte: null
       },
       {
         _id: "2",
-        citoyenId: { nom: "Sara Gharbi", email: "sara@gmail.com", adresse: "hay nozha" },
+        citoyenId: { nom: "Sara Gharbi", email: "sara@gmail.com", adresse: "Hay Nozha" },
         type: "Aluminium",
         quantite: 5.2,
         statut: "en attente",
+        dateDemande: "2025-11-03",
         dateRencontre: "2025-11-07",
+        dateCollecte: null
       },
     ];
   }
 
   static async accepterDemande(demandeId) {
     return {
-      message: `✅ La demande ${demandeId} a été acceptée avec succès.`,
-      collecte: { id: demandeId, statut: "acceptée", dateCollecte: "2025-11-02" },
+      message: `✅ La demande ${demandeId} a été acceptée.`,
+      collecte: { id: demandeId, statut: "acceptée", dateCollecte: new Date().toISOString() },
     };
   }
 
@@ -82,18 +102,22 @@ class CollecteurService {
     return [
       {
         _id: "101",
-        citoyen: { nom: "Ali Ben Salah", adresse: "rue mostfa mohsen borjlouzir" },
+        citoyen: { nom: "Ali Ben Salah", adresse: "rue Mostfa Mohsen Borj Louzir" },
         typeDechet: "Plastique",
         quantite: 4.2,
         statut: "terminée",
+        dateDemande: "2025-10-28",
+        dateRencontre: "2025-10-29",
         dateCollecte: "2025-10-29",
       },
       {
         _id: "102",
-        citoyen: { nom: "Sara Gharbi", adresse: "hay nozha" },
+        citoyen: { nom: "Sara Gharbi", adresse: "Hay Nozha" },
         typeDechet: "Aluminium",
         quantite: 2.5,
         statut: "rapportée",
+        dateDemande: "2025-10-29",
+        dateRencontre: "2025-10-30",
         dateCollecte: "2025-10-30",
       },
     ];

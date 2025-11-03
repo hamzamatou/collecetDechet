@@ -76,11 +76,12 @@
       height: 30px;
       font-weight: bold;
       margin: 0 5px;
+      cursor: pointer;
     }
 
     .btn-validate {
-      margin-top: 10px;
-      padding: 5px 15px;
+      margin-left: 10px;
+      padding: 5px 10px;
       background-color: #2e86de;
       color: white;
       border: none;
@@ -124,23 +125,21 @@
           <% baremes.forEach((b, index) => { %>
             <tr>
               <td><%= b.typeDechet %></td>
-              <td>
-                <span id="prix-<%= index %>"><%= b.pointsParKg %></span>
-              </td>
+              <td><span id="prix-<%= index %>"><%= b.pointsParKg %></span></td>
               <td>
                 <button class="btn-barreme" onclick="modifierBareme(<%= index %>, -1)">-</button>
                 <button class="btn-barreme" onclick="modifierBareme(<%= index %>, 1)">+</button>
+                <button class="btn-validate" onclick="validerBareme('<%= b._id %>', <%= index %>)">Valider</button>
               </td>
             </tr>
           <% }) %>
         </tbody>
       </table>
-      <button class="btn-validate" onclick="validerBaremes()">Valider les changements</button>
     </section>
   </main>
 
   <script>
-    // --- Stats Chart ---
+    // --- Chart Statistiques ---
     const statsData = <%- JSON.stringify(stats) %>;
 
     const ctx = document.getElementById("statsChart").getContext("2d");
@@ -181,21 +180,27 @@
     const baremes = <%- JSON.stringify(baremes) %>;
 
     function modifierBareme(index, delta) {
-      baremes[index].prixKg += delta;
-      if (baremes[index].prixKg < 0) baremes[index].prixKg = 0;
-      document.getElementById(`prix-${index}`).innerText = baremes[index].prixKg;
+      baremes[index].pointsParKg += delta;
+      if (baremes[index].pointsParKg < 0) baremes[index].pointsParKg = 0;
+      document.getElementById(`prix-${index}`).innerText = baremes[index].pointsParKg;
     }
 
-    function validerBaremes() {
-      fetch('/api/agent/baremes/updateAll', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(baremes)
-      })
-      .then(res => res.json())
-      .then(data => alert('Barèmes mis à jour avec succès !'))
-      .catch(err => alert('Erreur lors de la mise à jour.'));
-    }
+   function validerBareme(id, index) {
+  const bareme = { pointsParKg: baremes[index].pointsParKg };
+
+  fetch(`/agent/baremes/update/${id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bareme)
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Erreur lors de la mise à jour du barème');
+    alert(`Barème "${baremes[index].typeDechet}" mis à jour avec succès !`);
+    window.location.reload(); // ✅ recharge la page pour afficher les nouvelles valeurs
+  })
+  .catch(err => alert(err.message));
+}
+
   </script>
 </body>
 </html>

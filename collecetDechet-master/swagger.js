@@ -14,7 +14,7 @@ const options = {
       { url: 'http://localhost:3000' }
     ],
   },
-  apis: ['./controllers/*.js'],
+  apis: ['./routes/*.js'],
 };
 
 const specs = swaggerJsDoc(options);
