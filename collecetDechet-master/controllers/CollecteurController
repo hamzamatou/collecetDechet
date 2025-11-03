@@ -1,0 +1,209 @@
+// controllers/CollecteurController.js
+const express = require('express');
+const router = express.Router();
+const CollecteurService = require('../services/CollecteurService');
+const { authenticate, authorizeRole } = require('../middlewares/auth');
+class CollecteurController {
+    static async getDemandesCollecte(req, res) {
+        try {
+            const demandes = await CollecteurService.getDemandesCollecte();
+            res.status(200).json(demandes);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async accepterDemande(req, res) {
+        try {
+            const demande = await CollecteurService.accepterDemande(req.params.id);
+            res.status(200).json(demande);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async rapporterCollecte(req, res) {
+        try {
+            const { description } = req.body;
+            const rapport = await CollecteurService.rapporterCollecte(req.params.id, description);
+            res.status(200).json(rapport);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async majStatutCollecte(req, res) {
+        try {
+            const updated = await CollecteurService.majStatutCollecte(req.params.id, req.body.statut);
+            res.status(200).json(updated);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async getHistorique(req, res) {
+        try {
+            const historique = await CollecteurService.getHistorique(req.params.idCollecteur);
+            res.status(200).json(historique);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async pageDemandes(req, res) {
+  try {
+    const demandes = await CollecteurService.getDemandesCollecte();
+    const collecteur = { nom: "Mohamed ALi", zone: "borjlouzir" }; //  valeur temporaire
+    res.render("Collecteur/demandes", { collecteur, demandes });
+  } catch (err) {
+    res.status(500).send("Erreur serveur : " + err.message);
+  }
+}
+    static async pageHistorique(req, res) {
+        try {
+             const collecteur = { nom: "Mohamed ALi", zone: "borjlouzir" }; 
+            const historique = await CollecteurService.getHistorique(req.params.idCollecteur);
+            res.render('Collecteur/historique', { collecteur ,historique });
+        } catch (err) {
+            res.status(500).send('Erreur serveur : ' + err.message);
+        }
+    }
+
+    static async accepterDemandeWeb(req, res) {
+        try {
+            await CollecteurService.accepterDemande(req.params.id);
+            res.redirect('/Collecteur/demandes');
+        } catch (err) {
+            res.status(500).send('Erreur : ' + err.message);
+        }
+    }
+
+    static async rapporterCollecteWeb(req, res) {
+        try {
+            const { description } = req.body;
+            await CollecteurService.rapporterCollecte(req.params.id, description);
+            res.redirect('/Collecteur/demandes');
+        } catch (err) {
+            res.status(500).send('Erreur : ' + err.message);
+        }
+    }
+
+    static routes() {
+        /** 
+         * @swagger
+         * /api/collecteur/demandes:
+         *   get:
+         *     summary: Récupère toutes les demandes assignées au collecteur
+         *     tags: [Collecteur]
+         *     responses:
+         *       200:
+         *         description: Liste des demandes
+         *       500:
+         *         description: Erreur serveur
+         */
+        router.get('/api/collecteur/demandes', CollecteurController.getDemandesCollecte);
+        /**
+        * @swagger
+         * /api/collecteur/{id}/accepter:
+         *   post:
+         *     summary: Accepte une demande
+         *     tags: [Collecteur]
+         *     security:
+         *       - cookieAuth: []
+         *     parameters:
+         *       - in: path
+         *         name: id
+         *         required: true
+         *         schema:
+         *           type: string
+         *     responses:
+         *       200:
+         *         description: Demande acceptée
+         *       500:
+         *         description: Erreur serveur
+         */
+        router.post('/api/collecteur/:id/accepter', CollecteurController.accepterDemande);
+        /**
+         * @swagger
+         * /api/collecteur/{id}/rapporter:
+         *   post:
+         *     summary: Rapporte une collecte
+         *     tags: [Collecteur]
+         *     security:
+         *       - cookieAuth: []
+         *     parameters:
+         *       - in: path
+         *         name: id
+         *         required: true
+         *         schema:
+         *           type: string
+         *     requestBody:
+         *       description: Données de la collecte rapportée
+         *       required: true
+         *       content:
+         *         application/json:
+         *           schema:
+         *             type: object
+         *     responses:
+         *       200:
+         *         description: Collecte rapportée
+         *       500:
+         *         description: Erreur serveur
+         */
+        router.post('/api/collecteur/:id/rapporter', CollecteurController.rapporterCollecte);
+        router.put('/api/collecteur/:id/statut', CollecteurController.majStatutCollecte);
+        /**
+     * @swagger
+     * /api/collecteur/{idCollecteur}/historique:
+     *   get:
+     *     summary: Récupère l'historique des collectes pour un collecteur
+     *     tags: [Collecteur]
+     *     security:
+     *       - cookieAuth: []
+     *     parameters:
+     *       - in: path
+     *         name: idCollecteur
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Historique du collecteur
+     *       500:
+     *         description: Erreur serveur
+     */
+        router.get('/api/collecteur/:idCollecteur/historique', CollecteurController.getHistorique);
+router.get(
+  '/collecteur/demandes',
+  authenticate,
+  authorizeRole('collecteur'),
+  CollecteurController.pageDemandes
+);
+
+router.get(
+  '/collecteur/:idCollecteur/historique',
+  authenticate,
+  authorizeRole('collecteur'),
+  CollecteurController.pageHistorique
+);
+
+router.post(
+  '/collecteur/:id/accepter',
+  authenticate,
+  authorizeRole('collecteur'),
+  CollecteurController.accepterDemandeWeb
+);
+
+router.post(
+  '/collecteur/:id/rapporter',
+  authenticate,
+  authorizeRole('collecteur'),
+  CollecteurController.rapporterCollecteWeb
+);
+
+
+        return router;
+    }
+}
+
+module.exports = CollecteurController; 

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Tableau de bord - Agent</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #2e86de;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 15px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      padding: 2rem;
+    }
+
+    section {
+      background: white;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    canvas {
+      max-width: 600px;
+      margin: 2rem auto;
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+    .btn-barreme {
+      width: 30px;
+      height: 30px;
+      font-weight: bold;
+      margin: 0 5px;
+    }
+
+    .btn-validate {
+      margin-top: 10px;
+      padding: 5px 15px;
+      background-color: #2e86de;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .btn-validate:hover {
+      background-color: #1b4f72;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bienvenue, <%= agent.nom %> 👋</h1>
+    <nav>
+      <a href="/agent/dashboard">Dashboard</a>
+      <a href="/agent/collecteurs">Collecteurs</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Section Statistiques -->
+    <section>
+      <h2>Statistiques générales</h2>
+      <canvas id="statsChart"></canvas>
+    </section>
+
+    <!-- Section Barèmes -->
+    <section>
+      <h2>Liste des Barèmes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Type Déchet</th>
+            <th>pointsParKg</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% baremes.forEach((b, index) => { %>
+            <tr>
+              <td><%= b.typeDechet %></td>
+              <td>
+                <span id="prix-<%= index %>"><%= b.pointsParKg %></span>
+              </td>
+              <td>
+                <button class="btn-barreme" onclick="modifierBareme(<%= index %>, -1)">-</button>
+                <button class="btn-barreme" onclick="modifierBareme(<%= index %>, 1)">+</button>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <button class="btn-validate" onclick="validerBaremes()">Valider les changements</button>
+    </section>
+  </main>
+
+  <script>
+    // --- Stats Chart ---
+    const statsData = <%- JSON.stringify(stats) %>;
+
+    const ctx = document.getElementById("statsChart").getContext("2d");
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Collecteurs", "Zones", "Barèmes", "Collectes effectuées", "Collectes rapportées"],
+        datasets: [{
+          label: "Statistiques",
+          data: [
+            statsData.totalCollecteurs,
+            statsData.totalZones,
+            statsData.totalBaremes,
+            statsData.collectesEffectuees,
+            statsData.collectesRapportees
+          ],
+          backgroundColor: [
+            "#74b9ff",
+            "#a29bfe",
+            "#55efc4",
+            "#ffeaa7",
+            "#fab1a0"
+          ],
+          borderColor: "#0984e3",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: "Valeurs" } }
+        }
+      }
+    });
+
+    // --- Modification des baremes ---
+    const baremes = <%- JSON.stringify(baremes) %>;
+
+    function modifierBareme(index, delta) {
+      baremes[index].prixKg += delta;
+      if (baremes[index].prixKg < 0) baremes[index].prixKg = 0;
+      document.getElementById(`prix-${index}`).innerText = baremes[index].prixKg;
+    }
+
+    function validerBaremes() {
+      fetch('/api/agent/baremes/updateAll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(baremes)
+      })
+      .then(res => res.json())
+      .then(data => alert('Barèmes mis à jour avec succès !'))
+      .catch(err => alert('Erreur lors de la mise à jour.'));
+    }
+  </script>
+</body>
+</html>

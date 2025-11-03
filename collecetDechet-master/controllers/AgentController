@@ -1,0 +1,411 @@
+// controllers/AgentController.js
+const express = require('express');
+const router = express.Router();
+const BaremeService = require('../services/BaremeService');
+const CollecteurService = require('../services/CollecteurService');
+
+class AgentController {
+
+    static async getBaremes(req, res) {
+        try {
+            const baremes = await BaremeService.getBaremes();
+            res.status(200).json(baremes);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async addBareme(req, res) {
+        try {
+            const bareme = await BaremeService.addBareme(req.body);
+            res.status(201).json(bareme);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async updateBareme(req, res) {
+        try {
+            const updated = await BaremeService.updateBareme(req.params.id, req.body);
+            res.status(200).json(updated);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async deleteBareme(req, res) {
+        try {
+            await BaremeService.deleteBareme(req.params.id);
+            res.status(200).json({ message: "Barème supprimé" });
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async getCollecteurs(req, res) {
+        try {
+            const collecteurs = await CollecteurService.getAllCollecteurs();
+            res.status(200).json(collecteurs);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async addCollecteur(req, res) {
+        try {
+            const collecteur = await CollecteurService.addCollecteur(req.body);
+            res.status(201).json(collecteur);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async updateCollecteur(req, res) {
+        try {
+            const updated = await CollecteurService.updateCollecteur(req.params.id, req.body);
+            res.status(200).json(updated);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async deleteCollecteur(req, res) {
+        try {
+            await CollecteurService.deleteCollecteur(req.params.id);
+            res.status(200).json({ message: "Collecteur supprimé" });
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    // ============================
+    // 🔹 MÉTHODES WEB
+    // ============================
+
+    static async deleteCollecteurWeb(req, res) {
+        try {
+            await CollecteurService.deleteCollecteur(req.params.id);
+            res.redirect('/agent/collecteurs');
+        } catch (err) {
+            res.status(500).send("Erreur serveur : " + err.message);
+        }
+    }
+
+    static async updateCollecteurWeb(req, res) {
+        try {
+            await CollecteurService.updateCollecteur(req.params.id, req.body);
+            res.redirect('/agent/collecteurs');
+        } catch (err) {
+            res.status(500).send("Erreur serveur : " + err.message);
+        }
+    }
+    static async addBaremeWeb(req, res) {
+        try {
+            const { typeDechet, prixKg } = req.body;
+            await BaremeService.addBareme({ typeDechet, prixKg });
+            res.redirect('/agent/dashboard');
+        } catch (err) {
+            res.status(500).send("Erreur serveur : " + err.message);
+        }
+    }
+
+    // Modifier un barème via formulaire web
+    static async updateBaremeWeb(req, res) {
+        try {
+            const { typeDechet, prixKg } = req.body;
+            await BaremeService.updateBareme(req.params.id, { typeDechet, prixKg });
+            res.redirect('/agent/dashboard');
+        } catch (err) {
+            res.status(500).send("Erreur serveur : " + err.message);
+        }
+    }
+
+    // Supprimer un barème via web
+    static async deleteBaremeWeb(req, res) {
+        try {
+            await BaremeService.deleteBareme(req.params.id);
+            res.redirect('/agent/dashboard');
+        } catch (err) {
+            res.status(500).send("Erreur serveur : " + err.message);
+        }
+    }
+
+    static async getStatistiques(req, res) {
+        try {
+            const stats = {
+                totalCollecteurs: 8,
+                totalZones: 8,
+                totalBaremes: 3,
+                collectesEffectuees: 128,
+                collectesRapportees: 9
+            };
+            res.status(200).json(stats);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+
+    static async pageDashboard(req, res) {
+        try {
+            const agent = { nom: "Sami Trabelsi" };
+            const stats = await AgentController.getStatistiquesData();
+            const baremes = await BaremeService.getBaremes();
+            res.render("agent/dashboard", { agent, stats, baremes });
+        } catch (err) {
+            console.error("Erreur dans pageDashboard :", err);
+            res.status(500).send("Erreur serveur : " + err.message);
+        }
+    }
+
+    static async pageCollecteurs(req, res) {
+        try {
+            const agent = { nom: "Sami Trabelsi" };
+            const collecteurs = await CollecteurService.getAllCollecteurs();
+            res.render("agent/collecteurs", { agent, collecteurs });
+        } catch (err) {
+            res.status(500).send("Erreur serveur : " + err.message);
+        }
+    }
+
+    static async getStatistiquesData() {
+        return {
+            totalCollecteurs: 8,
+            totalZones: 5,
+            totalBaremes: 4,
+            collectesEffectuees: 128,
+            collectesRapportees: 9
+        };
+    }
+
+static routes() {
+/**
+ * @swagger
+ * /api/agent/baremes:
+ *   get:
+ *     responses:
+ *       200:
+ *         description: Liste des barèmes
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/api/agent/baremes', AgentController.getBaremes);
+
+/**
+ * @swagger
+ * /api/agent/baremes:
+ *   post:
+ *     tags:
+ *       - Agent
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *               point:
+ *                 type: number
+ *             example:
+ *               type: "Plastique"
+ *               point: 5
+ *     responses:
+ *       201:
+ *         description: Barème ajouté
+ *       500:
+ *         description: Erreur serveur
+ */
+router.post('/api/agent/baremes', AgentController.addBareme);
+/**
+ * @swagger
+ * /api/agent/baremes/{id}:
+ *   put:
+ *     summary: Mettre à jour un barème
+ *     tags:
+ *       - Agent
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du barème
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *               prix:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Barème mis à jour
+ *       500:
+ *         description: Erreur serveur
+ */
+router.put('/api/agent/baremes/:id', AgentController.updateBareme);
+
+// Supprimer un barème
+/**
+ * @swagger
+ * /api/agent/baremes/{id}:
+ *   delete:
+ *     summary: Supprimer un barème
+ *     tags:
+ *       - Agent
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du barème
+ *     responses:
+ *       200:
+ *         description: Barème supprimé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.delete('/api/agent/baremes/:id', AgentController.deleteBareme);
+
+// Récupérer tous les collecteurs
+/**
+ * @swagger
+ * /api/agent/collecteurs:
+ *   get:
+ *     summary: Récupérer tous les collecteurs
+ *     tags:
+ *       - Agent
+ *     responses:
+ *       200:
+ *         description: Liste des collecteurs
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/api/agent/collecteurs', AgentController.getCollecteurs);
+
+// Ajouter un collecteur
+/**
+ * @swagger
+ * /api/agent/collecteurs:
+ *   post:
+ *     summary: Ajouter un collecteur
+ *     tags:
+ *       - Agent
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               tel:
+ *                 type: string
+ *             example:
+ *               nom: "Ali Ben"
+ *               email: "ali@mail.com"
+ *               tel: "12345678"
+ *     responses:
+ *       201:
+ *         description: Collecteur ajouté
+ *       500:
+ *         description: Erreur serveur
+ */
+router.post('/api/agent/collecteurs', AgentController.addCollecteur);
+
+// Mettre à jour un collecteur
+/**
+ * @swagger
+ * /api/agent/collecteurs/{id}:
+ *   put:
+ *     summary: Mettre à jour un collecteur
+ *     tags:
+ *       - Agent
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du collecteur
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               tel:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Collecteur mis à jour
+ *       500:
+ *         description: Erreur serveur
+ */
+router.put('/api/agent/collecteurs/:id', AgentController.updateCollecteur);
+
+// Supprimer un collecteur
+/**
+ * @swagger
+ * /api/agent/collecteurs/{id}:
+ *   delete:
+ *     summary: Supprimer un collecteur
+ *     tags:
+ *       - Agent
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID du collecteur
+ *     responses:
+ *       200:
+ *         description: Collecteur supprimé
+ *       500:
+ *         description: Erreur serveur
+ */
+router.delete('/api/agent/collecteurs/:id', AgentController.deleteCollecteur);
+
+// Récupérer les statistiques
+/**
+ * @swagger
+ * /api/agent/stats:
+ *   get:
+ *     summary: Récupérer les statistiques de l’agent
+ *     tags:
+ *       - Agent
+ *     responses:
+ *       200:
+ *         description: Statistiques
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/api/agent/stats', AgentController.getStatistiques);
+
+
+    
+        router.get('/agent/dashboard', AgentController.pageDashboard);
+        router.get('/agent/collecteurs', AgentController.pageCollecteurs);
+        router.post('/agent/collecteurs/:id/update', AgentController.updateCollecteurWeb);
+        router.post('/agent/collecteurs/:id/delete', AgentController.deleteCollecteurWeb);
+
+        return router;
+    }
+}
+
+module.exports = AgentController;
